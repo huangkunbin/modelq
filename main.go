@@ -9,13 +9,13 @@ import (
 	"runtime"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/huangkunbin/modelq/drivers"
+	"github.com/huangkunbin/modelq/gmq"
 	_ "github.com/lib/pq"
-	"github.com/mijia/modelq/drivers"
-	"github.com/mijia/modelq/gmq"
 )
 
 func main() {
-	var targetDb, tableNames, packageName string
+	var targetDb, tableNames, packageName, mapKey string
 	var tmplName string
 	var driver, schemaName string
 	var touchTimestamp bool
@@ -29,6 +29,7 @@ func main() {
 	flag.StringVar(&tmplName, "template", "", "Passing the template to generate code, or use the default one")
 	flag.IntVar(&pCount, "p", 4, "Parallell running for code generator")
 	flag.BoolVar(&gmq.Debug, "debug", false, "Debug on/off")
+	flag.StringVar(&mapKey, "mapkey", "id", "The key for map default 'id'")
 	flag.Parse()
 
 	runtime.GOMAXPROCS(pCount)
@@ -62,6 +63,7 @@ func main() {
 		packageName:    packageName,
 		touchTimestamp: touchTimestamp,
 		template:       tmplName,
+		mapKey:         mapKey,
 	}
 	codeConfig.MustCompileTemplate()
 	generateModels(schemaName, dbSchema, *codeConfig)

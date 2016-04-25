@@ -4,8 +4,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/mijia/modelq/drivers/mysql"
-	"github.com/mijia/modelq/gmq"
+	"github.com/huangkunbin/modelq/drivers/mysql"
+	"github.com/huangkunbin/modelq/gmq"
 )
 
 type MysqlDriver struct{}
@@ -33,9 +33,9 @@ func (m MysqlDriver) LoadDatabaseSchema(dsnString, schema, tableNames string) (D
 func (m MysqlDriver) dataType(colDataType string) string {
 	kFieldTypes := map[string]string{
 		"bigint":    "int64",
-		"int":       "int",
-		"tinyint":   "int",
-		"smallint":  "int",
+		"int":       "int32",
+		"tinyint":   "int8",
+		"smallint":  "int16",
 		"char":      "string",
 		"varchar":   "string",
 		"blob":      "[]byte",
@@ -44,6 +44,7 @@ func (m MysqlDriver) dataType(colDataType string) string {
 		"timestamp": "time.Time",
 		"decimal":   "float64",
 		"double":    "float64",
+		"float":     "float32",
 		"bit":       "uint64",
 	}
 	if fieldType, ok := kFieldTypes[strings.ToLower(colDataType)]; !ok {

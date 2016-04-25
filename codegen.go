@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/mijia/modelq/drivers"
+	"github.com/huangkunbin/modelq/drivers"
 )
 
 type CodeResult struct {
@@ -21,6 +21,7 @@ type CodeConfig struct {
 	packageName    string
 	touchTimestamp bool
 	template       string
+	mapKey         string
 }
 
 func (cc CodeConfig) MustCompileTemplate() *template.Template {
@@ -69,7 +70,7 @@ func generateModel(dbName, tName string, schema drivers.TableSchema, config Code
 	}()
 
 	model := ModelMeta{
-		Name:      toCapitalCase(tName),
+		TbName:    toCapitalCase(tName),
 		DbName:    dbName,
 		TableName: tName,
 		Fields:    make([]ModelField, len(schema)),
@@ -105,6 +106,9 @@ func generateModel(dbName, tName string, schema drivers.TableSchema, config Code
 
 		if field.IsIndexed {
 			model.Indexed = append(model.Indexed, field)
+		}
+		if field.ColumnName == config.mapKey {
+			model.MapKey = field.Type
 		}
 
 		model.Fields[i] = field
@@ -145,17 +149,17 @@ type ModelField struct {
 
 func (f ModelField) ConverterFuncName() string {
 	convertors := map[string]string{
-		"int64":     "AsInt64",
-		"int":       "AsInt",
-		"string":    "AsString",
-		"time.Time": "AsTime",
-		"float64":   "AsFloat64",
-		"bool":      "AsBool",
+		"int8":    "Int8",
+		"int16":   "Int16",
+		"int32":   "Int32",
+		"int64":   "Int64",
+		"float32": "Float32",
+		"float64": "Float64",
 	}
 	if c, ok := convertors[f.Type]; ok {
 		return c
 	}
-	return "AsString"
+	return "Str"
 }
 
 type PrimaryFields []*ModelField
@@ -208,7 +212,7 @@ func (pf PrimaryFields) FormatFilters() func(string) string {
 }
 
 type ModelMeta struct {
-	Name          string
+	TbName        string
 	DbName        string
 	TableName     string
 	PrimaryFields PrimaryFields
@@ -216,6 +220,7 @@ type ModelMeta struct {
 	Uniques       []ModelField
 	Indexed       []ModelField
 	config        CodeConfig
+	MapKey        string
 }
 
 func (m ModelMeta) HasAutoIncrementPrimaryKey() bool {
